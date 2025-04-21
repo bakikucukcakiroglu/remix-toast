@@ -2,6 +2,7 @@ import {
   createCookieSessionStorageFactory,
   createCookieFactory,
   redirect,
+  replace,
   json,
   SessionStorage,
   SessionIdStorageStrategy,
@@ -66,6 +67,18 @@ async function redirectWithFlash(
   });
 }
 
+async function replaceWithFlash(
+  url: string,
+  flash: FlashSessionValues,
+  init?: ResponseInit,
+  customSession?: SessionStorage,
+) {
+  return replace(url, {
+    ...init,
+    headers: await flashMessage(flash, init?.headers, customSession),
+  });
+}
+
 async function jsonWithFlash<T>(
   data: T,
   flash: FlashSessionValues,
@@ -104,6 +117,18 @@ const redirectWithToastFactory = ({ type, session }: BaseFactoryType) => {
   ) => {
     const finalInfo = typeof messageOrToast === "string" ? { message: messageOrToast } : messageOrToast;
     return redirectWithFlash(redirectUrl, { toast: { ...finalInfo, type } }, init, customSession ?? session);
+  };
+};
+
+const replaceWithToastFactory = ({ type, session }: BaseFactoryType) => {
+  return (
+    redirectUrl: string,
+    messageOrToast: string | Omit<ToastMessage, "type">,
+    init?: ResponseInit,
+    customSession?: SessionStorage,
+  ) => {
+    const finalInfo = typeof messageOrToast === "string" ? { message: messageOrToast } : messageOrToast;
+    return replaceWithFlash(redirectUrl, { toast: { ...finalInfo, type } }, init, customSession ?? session);
   };
 };
 
@@ -155,6 +180,13 @@ export const createToastUtilsWithCustomSession = (session: SessionStorage) => {
     redirectWithError: redirectWithToastFactory({ type: "error", session }),
     redirectWithInfo: redirectWithToastFactory({ type: "info", session }),
     redirectWithWarning: redirectWithToastFactory({ type: "warning", session }),
+    replaceWithToast: (redirectUrl: string, toast: ToastMessage, init?: ResponseInit) => {
+      return replaceWithFlash(redirectUrl, { toast }, init, session);
+    },
+    replaceWithSuccess: replaceWithToastFactory({ type: "success", session }),
+    replaceWithError: replaceWithToastFactory({ type: "error", session }),
+    replaceWithInfo: replaceWithToastFactory({ type: "info", session }),
+    replaceWithWarning: replaceWithToastFactory({ type: "warning", session }),
     getToast: (request: Request) => getToast(request, session),
   };
 };
@@ -271,3 +303,66 @@ export const redirectWithWarning = redirectWithToastFactory({ type: "warning" })
  * @returns Returns redirect response with toast cookie set
  */
 export const redirectWithInfo = redirectWithToastFactory({ type: "info" });
+
+/**
+ * Helper method used to redirect the user to a new page with a toast notification while replacing the url in the browser history
+ *
+ * If thrown it needs to be awaited
+ * @param url Redirect URL
+ * @param toast Toast message and it's type
+ * @param init Additional response options (status code, additional headers etc)
+ * @returns Returns redirect response with toast cookie set
+ */
+export const replaceWithToast = (
+  redirectUrl: string,
+  toast: ToastMessage,
+  init?: ResponseInit,
+  customSession?: SessionStorage,
+) => {
+  return replaceWithFlash(redirectUrl, { toast }, init, customSession);
+};
+
+/**
+ * Helper method used to redirect the user to a new page with an error toast notification while replacing the url in the browser history
+ *
+ * If this method is thrown it needs to be awaited, otherwise it can just be returned
+ * @param redirectUrl Redirect url
+ * @param message Message to be shown as info
+ * @param init Additional response options (status code, additional headers etc)
+ * @returns Returns redirect response with toast cookie set
+ */
+export const replaceWithError = replaceWithToastFactory({ type: "error" });
+
+/**
+ * Helper method used to redirect the user to a new page with a success toast notification
+ *
+ * If this method is thrown it needs to be awaited, otherwise it can just be returned
+ * @param redirectUrl Redirect url
+ * @param message Message to be shown as info
+ * @param init Additional response options (status code, additional headers etc)
+ * @returns Returns redirect response with toast cookie set
+ */
+export const replaceWithSuccess = replaceWithToastFactory({ type: "success" });
+
+/**
+ * Helper method used to redirect the user to a new page with a warning toast notification while replacing the url in the browser history
+ *
+ * If this method is thrown it needs to be awaited, otherwise it can just be returned
+ * @param redirectUrl Redirect url
+ * @param message Message to be shown as info
+ * @param init Additional response options (status code, additional headers etc)
+ * @returns Returns redirect response with toast cookie set
+ */
+export const replaceWithWarning = replaceWithToastFactory({ type: "warning" });
+
+/**
+ * Helper method used to redirect the user to a new page with a info toast notification while replacing the url in the browser history
+ *
+ * If this method is thrown it needs to be awaited, otherwise it can just be returned
+ * @param redirectUrl Redirect url
+ * @param message Message to be shown as info
+ * @param init Additional response options (status code, additional headers etc)
+ * @returns Returns redirect response with toast cookie set
+ */
+export const replaceWithInfo = replaceWithToastFactory({ type: "info" });
+

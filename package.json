@@ -1,6 +1,6 @@
 {
-  "name": "remix-toast",
-  "version": "1.2.2",
+  "name": "remix-toast-remix-v2",
+  "version": "2.0.0",
   "description": "Utility functions for server-side toast notifications",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -50,7 +50,7 @@
     "format-code": "npm run prettier:fix & npm run lint:fix"
   },
   "peerDependencies": {
-    "@remix-run/server-runtime": ">=1.15"
+    "@remix-run/server-runtime": ">=2.11.0"
   },
   "repository": {
     "type": "git",
@@ -74,7 +74,7 @@
     "zod": "^3.22.3"
   },
   "devDependencies": {
-    "@remix-run/server-runtime": "^2.0.0",
+    "@remix-run/server-runtime": "^2.16.5",
     "@testing-library/react": "^14.0.0",
     "@types/node": "^18.15.11",
     "@types/react": "^18.0.34",
